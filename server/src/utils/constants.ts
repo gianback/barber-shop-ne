@@ -1,7 +1,0 @@
-export const {
-  POSTGRES_USER,
-  POSTGRES_PASSWORD,
-  POSTGRES_DB,
-  POSTGRES_PORT = 5432,
-  POSTGRES_HOST,
-} = process.env;
