@@ -1,22 +1,13 @@
-import { IsString, IsEmail, IsNotEmpty } from 'class-validator';
-export class CreateCatDto {
-  @IsString()
-  @IsNotEmpty()
-  name: string;
+import { z } from 'zod';
 
-  @IsString()
-  @IsNotEmpty()
-  last_name: string;
+export const createUserSchema = z
+  .object({
+    name: z.string().min(2).max(50),
+    last_name: z.string().min(2).max(50),
+    email: z.string().email(),
+    password: z.string().min(4).max(50),
+    avatar: z.string().optional(),
+  })
+  .required();
 
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-
-  @IsString()
-  @IsNotEmpty()
-  password: string;
-
-  @IsString()
-  @IsNotEmpty()
-  avatar: string;
-}
+export type CreateCatDto = z.infer<typeof createUserSchema>;
