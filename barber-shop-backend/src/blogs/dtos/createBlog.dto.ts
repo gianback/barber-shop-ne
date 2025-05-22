@@ -1,11 +1,15 @@
-import { z } from 'zod';
+import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+export class CreateBlogDto {
+  @IsString()
+  @MinLength(2)
+  @MinLength(50)
+  title: string;
 
-export const createBlogSchema = z
-  .object({
-    title: z.string().min(2).max(50),
-    description: z.string().min(2).max(50),
-    image: z.string().optional(),
-  })
-  .required();
+  @IsString()
+  @MinLength(2)
+  @MinLength(50)
+  description: string;
 
-export type CreateBlogDto = z.infer<typeof createBlogSchema>;
+  @IsString()
+  image: string;
+}

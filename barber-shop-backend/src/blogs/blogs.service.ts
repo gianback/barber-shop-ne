@@ -2,9 +2,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BlogEntity } from './entities/blog.entity';
 import { Repository } from 'typeorm';
 import { CreateBlogDto } from './dtos/createBlog.dto';
-import { GeneralResponse } from 'src/users/users.service';
 import slugify from 'slugify';
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { GeneralResponse } from 'src/interfaces/responses.interface';
 
 export type PatchBlog = Partial<BlogEntity>;
 

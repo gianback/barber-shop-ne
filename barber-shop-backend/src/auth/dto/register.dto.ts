@@ -1,31 +1,31 @@
 import {
   IsEmail,
-  IsNotEmpty,
   IsOptional,
   IsString,
+  MaxLength,
   MinLength,
 } from 'class-validator';
-export class CreateUserDto {
+
+export class RegisterDto {
   @IsString()
-  @MinLength(2)
-  @MinLength(50)
+  @MinLength(3)
+  @MaxLength(255)
   name: string;
 
   @IsString()
-  @MinLength(2)
-  @MinLength(50)
+  @MinLength(3)
+  @MaxLength(255)
   last_name: string;
 
   @IsEmail()
-  @IsNotEmpty()
   email: string;
 
   @IsString()
-  @MinLength(4)
-  @MinLength(50)
+  @MinLength(8)
+  @MaxLength(255)
   password: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   avatar?: string;
 }

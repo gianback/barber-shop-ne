@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common';
 import { BlogsService } from './blogs.service';
 import { BlogEntity } from './entities/blog.entity';
-import { GeneralResponse } from 'src/users/users.service';
 import { CreateBlogDto } from './dtos/createBlog.dto';
+import { GeneralResponse } from 'src/interfaces/responses.interface';
 
 @Controller('blogs')
 export class BlogsController {

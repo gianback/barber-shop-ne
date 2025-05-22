@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 export enum UserRole {
   admin = 'admin',
@@ -18,14 +24,15 @@ export class UserEntity {
 
   @Column({
     unique: true,
-    type: 'varchar',
   })
   email: string;
 
   @Column()
   password: string;
 
-  @Column()
+  @Column({
+    default: '',
+  })
   avatar: string;
 
   @Column({
@@ -34,4 +41,14 @@ export class UserEntity {
     default: UserRole.user,
   })
   role: UserRole;
+
+  @BeforeInsert()
+  checkEmailBeforeInsert() {
+    this.email = this.email.toLowerCase().trim();
+  }
+
+  @BeforeUpdate()
+  checkEmailBeforeUpdate() {
+    this.checkEmailBeforeInsert();
+  }
 }

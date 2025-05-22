@@ -3,17 +3,15 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   Param,
   Patch,
   Post,
-  UsePipes,
 } from '@nestjs/common';
-import { CreateCatDto, createUserSchema } from './dtos/createUser.dto';
-import { UpdateUserDto } from './dtos/updateUser.dto';
-import { GeneralResponse, UserResponse, UsersService } from './users.service';
+import { CreateUserDto } from './dtos/createUser.dto';
+import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
-import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
+import { GeneralResponse } from 'src/interfaces/responses.interface';
+import { EditUserDto } from './dtos/editUser.dto';
 
 @Controller('users')
 export class UsersController {
@@ -25,31 +23,19 @@ export class UsersController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<UserResponse> {
-    return await this.usersService.findOne({ id });
+  async findOne(@Param('id') id: number): Promise<UserEntity> {
+    return await this.usersService.findById({ id });
   }
 
   @Post()
-  @UsePipes(new ZodValidationPipe(createUserSchema))
-  async create(
-    @Body() user: CreateCatDto,
-    @Headers('authorization') key?: string,
-  ): Promise<UserResponse> {
-    return await this.usersService.create({
-      user,
-      key,
-    });
+  async create(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
+    // @Headers('authorization') key?: string,
+    return await this.usersService.createUser(createUserDto);
   }
 
   @Patch(':id')
-  async editUser(
-    @Param('id') id: number,
-    @Body() payload: UpdateUserDto,
-  ): Promise<GeneralResponse> {
-    return await this.usersService.editUser({
-      id,
-      payload,
-    });
+  async editUser(@Body() payload: EditUserDto): Promise<GeneralResponse> {
+    return await this.usersService.editUser(payload);
   }
 
   @Delete(':id')

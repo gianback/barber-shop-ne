@@ -1,29 +1,17 @@
 import {
   BadRequestException,
   Injectable,
-  UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { UserEntity, UserRole } from './entities/user.entity';
-import { hash } from 'bcryptjs';
+import { UserEntity } from './entities/user.entity';
+import * as bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
-
-interface User {
-  name: string;
-  last_name: string;
-  email: string;
-  password: string;
-  avatar: string;
-}
-
-export interface GeneralResponse {
-  message: string;
-  status: number;
-}
-
-type UserPatch = Partial<User>;
-
-export type UserResponse = Omit<UserEntity, 'password'>;
+import { GeneralResponse } from 'src/interfaces/responses.interface';
+import { CreateUserDto } from './dtos/createUser.dto';
+import { FindByIdDto } from './dtos/findbyId.dto';
+import { FindByEmailDto } from './dtos/findByEmail.dto';
+import { EditUserDto } from './dtos/editUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -32,96 +20,71 @@ export class UsersService {
     private userRepository: Repository<UserEntity>,
   ) {}
 
-  async create({
-    user,
-    key,
-  }: {
-    user: User;
-    key?: string;
-  }): Promise<UserResponse> {
-    const { avatar, email, last_name, name, password } = user;
+  async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
+    const { password, ...userData } = createUserDto;
 
-    const userAlreadyExists = await this.userRepository.findOne({
-      where: { email },
-    });
-    if (userAlreadyExists) {
-      throw new BadRequestException('User already exists');
-    }
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-    let isAdmin: boolean = false;
-    const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
+      const user = this.userRepository.create({
+        ...userData,
+        password: hashedPassword,
+      });
 
-    if (key) {
-      if (key !== VERIFY_TOKEN) {
-        console.log({
-          key,
-          VERIFY_TOKEN,
-        });
+      await this.userRepository.save(user);
 
-        throw new UnauthorizedException('Unauthorized');
+      return user;
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new BadRequestException(
+          `Email ${createUserDto.email} already exists`,
+        );
       }
-      isAdmin = true;
+
+      throw new BadRequestException('Invalid data');
     }
-
-    const hashedPassword = await hash(password, 10);
-
-    const newUser = this.userRepository.create({
-      avatar,
-      email,
-      last_name,
-      name,
-      password: hashedPassword,
-      role: isAdmin ? UserRole.admin : UserRole.user,
-    });
-
-    return await this.userRepository.save({
-      id: newUser.id,
-      avatar: newUser.avatar,
-      email: newUser.email,
-      last_name: newUser.last_name,
-      name: newUser.name,
-      role: newUser.role,
-    });
   }
 
-  async findOne({ id }: { id: number }): Promise<UserResponse> {
-    const {
-      email,
-      avatar,
-      id: userId,
-      last_name,
-      name,
-      role,
-    } = (await this.userRepository.findOne({
-      where: { id },
+  // async createAdmin(createUserDto: CreateUserDto): Promise<UserEntity> {}
+
+  async findById(findByIdDto: FindByIdDto): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: findByIdDto.id,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  async findByEmail(findByEmailDto: FindByEmailDto): Promise<UserEntity> {
+    const user = (await this.userRepository.findOne({
+      where: { email: findByEmailDto.email },
     })) as UserEntity;
 
-    return {
-      email,
-      avatar,
-      id: userId,
-      last_name,
-      name,
-      role,
-    };
+    console.log({ user, findByEmailDto });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 
-  async editUser({
-    id,
-    payload,
-  }: {
-    id: number;
-    payload: UserPatch;
-  }): Promise<GeneralResponse> {
+  async editUser(editUserDto: EditUserDto): Promise<GeneralResponse> {
     const user = await this.userRepository.findOne({
-      where: { id },
+      where: { id: editUserDto.id },
     });
 
     if (!user) {
       throw new BadRequestException('User not found');
     }
 
-    Object.assign(user, payload);
+    Object.assign(user, editUserDto);
 
     return { message: 'User was updated', status: 200 };
   }
