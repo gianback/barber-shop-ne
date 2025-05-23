@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity, UserRole } from './entities/user.entity';
 import * as bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GeneralResponse } from 'src/interfaces/responses.interface';
@@ -34,7 +34,7 @@ export class UsersService {
       await this.userRepository.save(user);
 
       return user;
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === '23505') {
         throw new BadRequestException(
           `Email ${createUserDto.email} already exists`,
@@ -45,7 +45,31 @@ export class UsersService {
     }
   }
 
-  // async createAdmin(createUserDto: CreateUserDto): Promise<UserEntity> {}
+  async createAdmin(createUserDto: CreateUserDto): Promise<UserEntity> {
+    const { password, ...userData } = createUserDto;
+
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = this.userRepository.create({
+        ...userData,
+        password: hashedPassword,
+        role: UserRole.admin,
+      });
+
+      await this.userRepository.save(user);
+
+      return user;
+    } catch (error: any) {
+      if (error.code === '23505') {
+        throw new BadRequestException(
+          `Email ${createUserDto.email} already exists`,
+        );
+      }
+
+      throw new BadRequestException('Invalid data');
+    }
+  }
 
   async findById(findByIdDto: FindByIdDto): Promise<UserEntity> {
     const user = await this.userRepository.findOne({
