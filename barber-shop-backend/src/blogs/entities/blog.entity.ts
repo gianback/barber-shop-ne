@@ -4,9 +4,11 @@ import {
   BeforeUpdate,
   Column,
   CreateDateColumn,
+  Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+@Entity('blogs')
 export class BlogEntity {
   @PrimaryGeneratedColumn()
   id: number;

@@ -1,5 +1,6 @@
-import { Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+@Entity('services')
 export class ServiceEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -10,11 +11,16 @@ export class ServiceEntity {
   @Column()
   description: string;
 
-  @Column()
-  image: string;
-
   @Column({
     type: 'float',
   })
   price: number;
+
+  @Column()
+  image: string;
+
+  @Column({
+    unique: true,
+  })
+  slug: string;
 }

@@ -3,8 +3,15 @@ import { BlogEntity } from './entities/blog.entity';
 import { Repository } from 'typeorm';
 import { CreateBlogDto } from './dtos/createBlog.dto';
 import slugify from 'slugify';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { GeneralResponse } from 'src/interfaces/responses.interface';
+import { UsersService } from 'src/users/users.service';
+import { UploadFileService } from 'src/upload-file/upload-file.service';
+import { UserRole } from 'src/users/entities/user.entity';
 
 export type PatchBlog = Partial<BlogEntity>;
 
@@ -13,15 +20,32 @@ export class BlogsService {
   constructor(
     @InjectRepository(BlogEntity)
     private blogRepository: Repository<BlogEntity>,
+    private readonly usersService: UsersService,
+    private readonly uploadFileService: UploadFileService,
   ) {}
 
   async createPost({
     blog,
+    image,
+    userId,
   }: {
     blog: CreateBlogDto;
-  }): Promise<GeneralResponse> {
-    const { description, image, title } = blog;
-    const baseSlug = slugify(title, { lower: true, strict: true });
+    image: Express.Multer.File;
+    userId: number;
+  }): Promise<BlogEntity> {
+    const user = await this.usersService.findById({ id: userId });
+
+    if (user === null) {
+      throw new BadRequestException('User not found');
+    }
+
+    const isAdmin = user.role === UserRole.admin;
+
+    if (!isAdmin) {
+      throw new UnauthorizedException('User not authorized');
+    }
+
+    const baseSlug = slugify(blog.title, { lower: true, strict: true });
     let newSlug = baseSlug;
     let counter = 1;
 
@@ -34,22 +58,39 @@ export class BlogsService {
       counter++;
     }
 
+    const urlImage = await this.uploadFileService.uploadFile(image);
+
     const newBlog = this.blogRepository.create({
-      description,
-      image,
-      title,
+      description: blog.description,
+      image: urlImage,
+      title: blog.title,
       slug: newSlug,
     });
 
-    await this.blogRepository.save(newBlog);
+    const blogCreated = await this.blogRepository.save(newBlog);
 
-    return {
-      message: 'Blog created successfully',
-      status: 200,
-    };
+    return blogCreated;
   }
 
-  async deletePost({ id }: { id: number }): Promise<GeneralResponse> {
+  async deletePost({
+    id,
+    userId,
+  }: {
+    id: number;
+    userId: number;
+  }): Promise<GeneralResponse> {
+    const user = await this.usersService.findById({ id: userId });
+
+    if (user === null) {
+      throw new BadRequestException('User not found');
+    }
+
+    const isAdmin = user.role === UserRole.admin;
+
+    if (!isAdmin) {
+      throw new UnauthorizedException('User not authorized');
+    }
+
     const post = await this.blogRepository.findOne({
       where: { id },
     });
@@ -81,11 +122,25 @@ export class BlogsService {
 
   async updatePost({
     id,
-    payload,
+    blog,
+    userId,
   }: {
     id: number;
-    payload: PatchBlog;
+    blog: PatchBlog;
+    userId: number;
   }): Promise<GeneralResponse> {
+    const user = await this.usersService.findById({ id: userId });
+
+    if (user === null) {
+      throw new BadRequestException('User not found');
+    }
+
+    const isAdmin = user.role === UserRole.admin;
+
+    if (!isAdmin) {
+      throw new UnauthorizedException('User not authorized');
+    }
+
     const post = await this.blogRepository.findOne({
       where: { id },
     });
@@ -94,7 +149,7 @@ export class BlogsService {
       throw new BadRequestException('Post not found');
     }
 
-    Object.assign(post, payload);
+    Object.assign(post, blog);
 
     await this.blogRepository.save(post);
 

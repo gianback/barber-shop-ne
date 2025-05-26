@@ -4,37 +4,62 @@ import {
   Post,
   UploadedFile,
   UseInterceptors,
-  Req,
   Get,
+  UseGuards,
+  Patch,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { ServicesService } from './services.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ServicesDto } from './dtos/services.dto';
-import { RequestWithSession } from 'src/middlewares/session.middleware';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from './decorators/getUser.decorator';
+import { UpdateServiceDto } from './dtos/updateService.dto';
 
 @Controller('services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
+
   @Post()
+  @UseGuards(AuthGuard())
   @UseInterceptors(FileInterceptor('image'))
   async createService(
-    @Req() req: RequestWithSession,
+    @GetUser('id') userId: number,
     @Body() service: ServicesDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    //validar el roll del usuario
-    //todo validate token para del usuario admin en los headers
-    //proceder con todo
-    const userId = req.user.id;
-
     return await this.servicesService.createService({
       service,
       image: file,
       userId,
     });
   }
+
+  @Patch()
+  @UseGuards(AuthGuard())
+  async updateService(
+    updateServiceDto: UpdateServiceDto,
+    @GetUser('id') userId: number,
+  ) {
+    return await this.servicesService.updateService({
+      userId,
+      updateServiceDto,
+    });
+  }
+
   @Get()
+  @UseGuards(AuthGuard())
   getAllServices() {
     return this.servicesService.getAllServices();
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard())
+  async deleteService(@Param('id') id: number, @GetUser('id') userId: number) {
+    return await this.servicesService.deleteService({
+      id,
+      userId,
+    });
   }
 }

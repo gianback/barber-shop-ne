@@ -6,11 +6,17 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { BlogsService } from './blogs.service';
 import { BlogEntity } from './entities/blog.entity';
 import { CreateBlogDto } from './dtos/createBlog.dto';
 import { GeneralResponse } from 'src/interfaces/responses.interface';
+import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { GetUser } from 'src/services/decorators/getUser.decorator';
 
 @Controller('blogs')
 export class BlogsController {
@@ -22,9 +28,17 @@ export class BlogsController {
   }
 
   @Post()
-  async createPost(@Body() blog: CreateBlogDto): Promise<GeneralResponse> {
+  @UseGuards(AuthGuard())
+  @UseInterceptors(FileInterceptor('image'))
+  async createPost(
+    @GetUser('id') userId: number,
+    @Body() blog: CreateBlogDto,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<BlogEntity> {
     return await this.blogsServices.createPost({
       blog,
+      image: file,
+      userId,
     });
   }
 
@@ -34,18 +48,25 @@ export class BlogsController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard())
   async updatePost(
     @Param('id') id: number,
-    @Body() payload: Partial<BlogEntity>,
+    @Body() blog: Partial<BlogEntity>,
+    @GetUser('id') userId: number,
   ): Promise<GeneralResponse> {
     return await this.blogsServices.updatePost({
       id,
-      payload,
+      blog,
+      userId,
     });
   }
 
   @Delete(':id')
-  async deletePost(@Param('id') id: number): Promise<GeneralResponse> {
-    return await this.blogsServices.deletePost({ id });
+  @UseGuards(AuthGuard())
+  async deletePost(
+    @Param('id') id: number,
+    @GetUser('id') userId: number,
+  ): Promise<GeneralResponse> {
+    return await this.blogsServices.deletePost({ id, userId });
   }
 }

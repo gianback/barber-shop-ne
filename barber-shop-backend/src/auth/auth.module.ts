@@ -8,16 +8,26 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { UploadFileService } from 'src/upload-file/upload-file.service';
+import { R2StorageService } from 'src/upload-file/r2/r2.service';
+import { r2Provider } from 'src/upload-file/r2/r2.provider';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, UsersService, JwtStrategy],
+  providers: [
+    AuthService,
+    UsersService,
+    JwtStrategy,
+    UploadFileService,
+    R2StorageService,
+    r2Provider,
+  ],
   imports: [
-    ConfigModule,
-    TypeOrmModule.forFeature([UserEntity]),
     PassportModule.register({
       defaultStrategy: 'jwt',
     }),
+    ConfigModule,
+    TypeOrmModule.forFeature([UserEntity]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

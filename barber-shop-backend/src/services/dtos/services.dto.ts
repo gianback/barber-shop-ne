@@ -7,7 +7,7 @@ export class ServicesDto {
 
   @IsString()
   @MinLength(2)
-  @MaxLength(255)
+  @MaxLength(999)
   description: string;
 
   @IsNotEmpty()

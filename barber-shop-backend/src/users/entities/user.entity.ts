@@ -31,7 +31,7 @@ export class UserEntity {
   password: string;
 
   @Column({
-    default: '',
+    default: null,
   })
   avatar: string;
 

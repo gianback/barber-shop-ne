@@ -44,8 +44,8 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    const { password, ...restData } =
-      await this.usersService.createUser(registerDto);
+    const user = await this.usersService.createUser(registerDto);
+    const { password, ...restData } = user;
 
     return restData;
   }

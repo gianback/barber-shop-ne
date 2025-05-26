@@ -7,4 +7,28 @@ export class UploadFileService {
   async uploadFile(file: Express.Multer.File) {
     return this.r2StorageService.upload(file);
   }
+
+  async deleteFile(name: string) {
+    return await this.r2StorageService.delete(name);
+  }
+
+  parseFileName(file: Express.Multer.File): string {
+    const fileNameParsed = file.originalname
+      .trim()
+      .toLowerCase()
+      .replace('/á/g', 'a')
+      .replace('/Á/g', 'a')
+      .replace('/é/g', 'e')
+      .replace('/É/g', 'e')
+      .replace('/í/g', 'i')
+      .replace('/Í/g', 'i')
+      .replace('/ó/g', 'o')
+      .replace('/Ó/g', 'o')
+      .replace('/ú/g', 'u')
+      .replace('/Ú/g', 'u')
+      .replace('/ü/g', 'u')
+      .replace(/(\W|\s+)/g, '-');
+
+    return fileNameParsed;
+  }
 }

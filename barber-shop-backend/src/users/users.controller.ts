@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   Patch,
   Post,
@@ -12,13 +13,15 @@ import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
 import { GeneralResponse } from 'src/interfaces/responses.interface';
 import { EditUserDto } from './dtos/editUser.dto';
+import { FindAllUsers } from './interfaces/findAllUsers.interface';
+import { AdminCreated } from './interfaces/adminCreated.interface';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  async findAll(): Promise<UserEntity[]> {
+  async findAll(): Promise<FindAllUsers[]> {
     return await this.usersService.findAll();
   }
 
@@ -29,8 +32,17 @@ export class UsersController {
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
-    // @Headers('authorization') key?: string,
     return await this.usersService.createUser(createUserDto);
+  }
+
+  @Post('admin')
+  async createAdmin(
+    @Body() createUserDto: CreateUserDto,
+    @Headers('authorization') key?: string,
+  ): Promise<AdminCreated> {
+    const keyParsed = key || '';
+
+    return await this.usersService.createAdmin(createUserDto, keyParsed);
   }
 
   @Patch(':id')

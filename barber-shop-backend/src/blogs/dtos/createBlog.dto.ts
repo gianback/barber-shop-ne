@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsString, MinLength } from 'class-validator';
 export class CreateBlogDto {
   @IsString()
   @MinLength(2)
@@ -9,7 +9,4 @@ export class CreateBlogDto {
   @MinLength(2)
   @MinLength(50)
   description: string;
-
-  @IsString()
-  image: string;
 }
