@@ -125,6 +125,16 @@ export class ServicesService {
     await this.servicesRepository.delete({ id });
   }
 
+  async getServiceById(id: number) {
+    const service = await this.servicesRepository.findOne({ where: { id } });
+
+    if (!service) {
+      throw new NotFoundException('Service not found');
+    }
+
+    return service;
+  }
+
   async getAllServices(): Promise<ServiceEntity[]> {
     return await this.servicesRepository.find();
   }

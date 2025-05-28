@@ -1,8 +1,11 @@
+import { AppointmentEntity } from 'src/appointments/entities/appointment.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
   Column,
   Entity,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -41,6 +44,9 @@ export class UserEntity {
     default: UserRole.user,
   })
   role: UserRole;
+
+  @ManyToOne(() => AppointmentEntity, (appointment) => appointment.user)
+  appointments: AppointmentEntity[];
 
   @BeforeInsert()
   checkEmailBeforeInsert() {

@@ -54,6 +54,11 @@ export class ServicesController {
     return this.servicesService.getAllServices();
   }
 
+  @Get(':id')
+  getServiceById(@Param('id') id: number) {
+    return this.servicesService.getServiceById(id);
+  }
+
   @Delete(':id')
   @UseGuards(AuthGuard())
   async deleteService(@Param('id') id: number, @GetUser('id') userId: number) {

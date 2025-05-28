@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { AppointmentEntity } from 'src/appointments/entities/appointment.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('services')
 export class ServiceEntity {
@@ -23,4 +24,7 @@ export class ServiceEntity {
     unique: true,
   })
   slug: string;
+
+  @ManyToOne(() => AppointmentEntity, (appointment) => appointment.service)
+  appointment: AppointmentEntity;
 }

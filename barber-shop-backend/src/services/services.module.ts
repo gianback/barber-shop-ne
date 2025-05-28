@@ -9,9 +9,13 @@ import { R2StorageService } from 'src/upload-file/r2/r2.service';
 import { r2Provider } from 'src/upload-file/r2/r2.provider';
 import { AuthModule } from 'src/auth/auth.module';
 import { ServiceEntity } from './entities/services.entity';
+import { AppointmentEntity } from 'src/appointments/entities/appointment.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ServiceEntity, UserEntity]), AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([ServiceEntity, UserEntity, AppointmentEntity]),
+    AuthModule,
+  ],
   providers: [
     ServicesService,
     UsersService,
