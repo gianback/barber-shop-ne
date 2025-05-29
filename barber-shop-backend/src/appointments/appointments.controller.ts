@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -20,7 +21,7 @@ export class AppointmentsController {
   @Post()
   @UseGuards(AuthGuard())
   createAppointment(
-    createAppointmentDto: CreateAppointmentDto,
+    @Body() createAppointmentDto: CreateAppointmentDto,
     @GetUser('id') userId: number,
   ) {
     return this.appointmentsService.createAppointment({
@@ -29,9 +30,14 @@ export class AppointmentsController {
     });
   }
 
-  @Get()
+  @Get('/date/:date')
+  getHoursAppointmentsAvailableByDate(@Param('date') date: Date) {
+    return this.appointmentsService.getHoursAppointmentsAvailableByDate(date);
+  }
+
+  @Get('/user/:userId')
   @UseGuards(AuthGuard())
-  getAppointmentsByUserId(@GetUser('id') userId: number) {
+  getAppointmentsByUserId(@Param('userId') userId: number) {
     return this.appointmentsService.getAppointmentsByUserId(userId);
   }
 
@@ -46,7 +52,7 @@ export class AppointmentsController {
   updateAppointment(
     @GetUser('id') userId: number,
     @Param('id') appointmentId: number,
-    updateAppointmentDto: UpdateAppointmentDto,
+    @Body() updateAppointmentDto: UpdateAppointmentDto,
   ) {
     return this.appointmentsService.updateAppointment(
       appointmentId,

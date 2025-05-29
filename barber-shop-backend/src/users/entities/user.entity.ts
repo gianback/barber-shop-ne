@@ -45,7 +45,7 @@ export class UserEntity {
   })
   role: UserRole;
 
-  @ManyToOne(() => AppointmentEntity, (appointment) => appointment.user)
+  @OneToMany(() => AppointmentEntity, (appointment) => appointment.user)
   appointments: AppointmentEntity[];
 
   @BeforeInsert()

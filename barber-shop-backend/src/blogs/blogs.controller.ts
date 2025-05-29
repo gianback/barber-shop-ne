@@ -42,9 +42,9 @@ export class BlogsController {
     });
   }
 
-  @Get(':slug')
-  async findOne(@Param('slug') slug: string): Promise<BlogEntity> {
-    return await this.blogsServices.findOne({ slug });
+  @Get(':id')
+  async findeOnePost(@Param('id') id: string): Promise<BlogEntity> {
+    return await this.blogsServices.findOne({ id: +id });
   }
 
   @Patch(':id')

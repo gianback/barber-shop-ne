@@ -6,6 +6,7 @@ import slugify from 'slugify';
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { GeneralResponse } from 'src/interfaces/responses.interface';
@@ -45,32 +46,37 @@ export class BlogsService {
       throw new UnauthorizedException('User not authorized');
     }
 
-    const baseSlug = slugify(blog.title, { lower: true, strict: true });
-    let newSlug = baseSlug;
-    let counter = 1;
+    const isMoreThan1MB = image.size > 1048576;
 
-    const existsSlug = await this.blogRepository.findOne({
-      where: { slug: baseSlug },
-    });
+    if (isMoreThan1MB)
+      throw new BadRequestException('Image size must be less than 1MB');
 
-    while (existsSlug) {
-      newSlug = `${baseSlug}-${counter}`;
-      counter++;
+    const slug = this.parseNameToSlug(blog.title);
+    try {
+      const urlImage = await this.uploadFileService.uploadFile(image);
+
+      const newBlog = this.blogRepository.create({
+        description: blog.description,
+        image: urlImage,
+        title: blog.title,
+        slug,
+      });
+
+      const blogCreated = await this.blogRepository.save(newBlog);
+
+      return blogCreated;
+    } catch (error: any) {
+      console.log('error creando el blog en createBlog', error);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (error.code === '23505') {
+        throw new BadRequestException(`El titulo ${blog.title} ya existe`);
+      }
+
+      throw new InternalServerErrorException('Error de servidor');
     }
-
-    const urlImage = await this.uploadFileService.uploadFile(image);
-
-    const newBlog = this.blogRepository.create({
-      description: blog.description,
-      image: urlImage,
-      title: blog.title,
-      slug: newSlug,
-    });
-
-    const blogCreated = await this.blogRepository.save(newBlog);
-
-    return blogCreated;
   }
+
+  //TODO: UPDATE IMAGE BLOG
 
   async deletePost({
     id,
@@ -108,9 +114,9 @@ export class BlogsService {
     return await this.blogRepository.find();
   }
 
-  async findOne({ slug }: { slug: string }): Promise<BlogEntity> {
+  async findOne({ id }: { id: number }): Promise<BlogEntity> {
     const post = await this.blogRepository.findOne({
-      where: { slug },
+      where: { id },
     });
 
     if (!post) {
@@ -131,10 +137,6 @@ export class BlogsService {
   }): Promise<GeneralResponse> {
     const user = await this.usersService.findById({ id: userId });
 
-    if (user === null) {
-      throw new BadRequestException('User not found');
-    }
-
     const isAdmin = user.role === UserRole.admin;
 
     if (!isAdmin) {
@@ -154,5 +156,11 @@ export class BlogsService {
     await this.blogRepository.save(post);
 
     return { message: 'Post updated', status: 200 };
+  }
+
+  parseNameToSlug(name: string): string {
+    const slug = slugify(name, { lower: true, strict: true });
+
+    return slug;
   }
 }

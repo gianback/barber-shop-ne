@@ -1,6 +1,6 @@
 import { ServiceEntity } from 'src/services/entities/services.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('appointments')
 export class AppointmentEntity {
@@ -12,12 +12,12 @@ export class AppointmentEntity {
   })
   date: Date;
 
-  @OneToMany(() => ServiceEntity, (service) => service.appointment, {
+  @ManyToOne(() => ServiceEntity, (service) => service.appointment, {
     cascade: true,
   })
   service: ServiceEntity;
 
-  @OneToMany(() => UserEntity, (user) => user.appointments, {
+  @ManyToOne(() => UserEntity, (user) => user.appointments, {
     cascade: true,
   })
   user: UserEntity;

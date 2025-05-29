@@ -23,7 +23,7 @@ export class R2StorageService {
       'CLOUDFLARE_IMAGE_BASE_URL',
     );
 
-    const name = body.originalname;
+    const name = this.parseFileName(body.originalname);
 
     const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
@@ -65,5 +65,25 @@ export class R2StorageService {
       console.log(`Error upload  r2stroageService`, error);
       throw new InternalServerErrorException(error);
     }
+  }
+
+  parseFileName(name: string): string {
+    const fileNameParsed = name
+      .trim()
+      .toLowerCase()
+      .replace('/á/g', 'a')
+      .replace('/Á/g', 'a')
+      .replace('/é/g', 'e')
+      .replace('/É/g', 'e')
+      .replace('/í/g', 'i')
+      .replace('/Í/g', 'i')
+      .replace('/ó/g', 'o')
+      .replace('/Ó/g', 'o')
+      .replace('/ú/g', 'u')
+      .replace('/Ú/g', 'u')
+      .replace('/ü/g', 'u')
+      .replace(/(\W|\s+)/g, '-');
+
+    return fileNameParsed;
   }
 }

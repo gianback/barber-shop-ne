@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AppointmentEntity } from './entities/appointment.entity';
-import { Between, Repository } from 'typeorm';
+import { Between, createQueryBuilder, DataSource, Repository } from 'typeorm';
 import { CreateAppointmentDto } from './dtos/createAppointment.dto';
 import { UsersService } from 'src/users/users.service';
 import { ServicesService } from 'src/services/services.service';
-import { dayStart, format } from '@formkit/tempo';
+import { dayEnd, dayStart, format, isAfter } from '@formkit/tempo';
 import { UpdateAppointmentDto } from './dtos/updateAPpointment.dto';
 
 @Injectable()
@@ -26,17 +26,17 @@ export class AppointmentsService {
   ];
 
   private readonly hoursAvailable = [
-    '08:00',
-    '09:00',
-    '10:00',
-    '11:00',
-    '12:00',
-    '13:00',
-    '14:00',
-    '15:00',
-    '16:00',
-    '17:00',
-    '18:00',
+    '08',
+    '09',
+    '10',
+    '11',
+    '12',
+    '13',
+    '14',
+    '15',
+    '16',
+    '17',
+    '18',
   ];
 
   async createAppointment({
@@ -46,7 +46,9 @@ export class AppointmentsService {
     userId: number;
     createAppointmentDto: CreateAppointmentDto;
   }) {
-    const user = await this.usersService.findById({ id: userId });
+    const { password, ...restUserData } = await this.usersService.findById({
+      id: userId,
+    });
 
     const service = await this.servicesService.getServiceById(
       createAppointmentDto.serviceId,
@@ -65,19 +67,23 @@ export class AppointmentsService {
     const appointment = this.appointmentRepository.create({
       date: createAppointmentDto.date,
       service,
-      user,
+      user: {
+        ...restUserData,
+      },
     });
 
-    await this.appointmentRepository.save(createAppointmentDto);
+    await this.appointmentRepository.save(appointment);
 
     return appointment;
   }
 
-  async getAppointmentsByDate(inputDate: string) {
-    const inputDateFormated = new Date(inputDate);
+  async getHoursAppointmentsAvailableByDate(inputDate: Date) {
+    this.validateDate(inputDate);
+
+    const inputDateFormated = new Date(inputDate).toISOString();
 
     const startDayDate = dayStart(inputDateFormated);
-    const endDayDate = dayStart(inputDateFormated);
+    const endDayDate = dayEnd(inputDateFormated);
 
     const appointments = await this.appointmentRepository.find({
       where: {
@@ -89,11 +95,9 @@ export class AppointmentsService {
       return this.hoursAvailable;
     }
 
-    const hours = appointments
-      .map((item) => format(item.date, 'HH', 'es'))
-      .filter((item) => this.hoursAvailable.includes(item));
+    const hours = appointments.map((item) => format(item.date, 'HH', 'es'));
 
-    return hours;
+    return this.hoursAvailable.filter((item) => !hours.includes(item));
   }
 
   async getAppointmentById(appointmentId: number) {
@@ -109,21 +113,25 @@ export class AppointmentsService {
   }
 
   async getAppointmentsByUserId(userId: number) {
-    const appointments = await this.appointmentRepository.find({
-      where: {
-        user: {
-          id: userId,
-        },
-      },
-    });
+    const appointments = await this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .innerJoinAndSelect('appointment.user', 'user')
+      .where('user.id = :id', { id: userId })
+      .getMany();
 
     return appointments;
   }
 
   async deleteAppointment(appointmentId: number, userId: number) {
-    const appointment = await this.appointmentRepository.findOneBy({
-      id: appointmentId,
-    });
+    const appointment = await this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .innerJoinAndSelect('appointment.user', 'user')
+      .innerJoinAndSelect('appointment.service', 'service')
+      .where('user.id = :id', { id: userId })
+      .andWhere('appointment.id = :appointmentId', {
+        appointmentId: appointmentId,
+      })
+      .getOne();
 
     if (!appointment) {
       throw new BadRequestException('Appointment not found');
@@ -147,9 +155,15 @@ export class AppointmentsService {
     userId: number,
     appointmentDto: UpdateAppointmentDto,
   ) {
-    const appointment = await this.appointmentRepository.findOneBy({
-      id: appointmentId,
-    });
+    const appointment = await this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .innerJoinAndSelect('appointment.user', 'user')
+      .innerJoinAndSelect('appointment.service', 'service')
+      .where('user.id = :id', { id: userId })
+      .andWhere('appointment.id = :appointmentId', {
+        appointmentId: appointmentId,
+      })
+      .getOne();
 
     if (!appointment) {
       throw new BadRequestException('Appointment not found');
@@ -187,6 +201,12 @@ export class AppointmentsService {
 
     if (!isValidHour) {
       throw new BadRequestException('Invalid hour');
+    }
+
+    const isAfterToday = isAfter(date, new Date().toISOString());
+
+    if (!isAfterToday) {
+      throw new BadRequestException('Invalid date');
     }
   }
 }

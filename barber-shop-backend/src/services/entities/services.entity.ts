@@ -1,5 +1,11 @@
 import { AppointmentEntity } from 'src/appointments/entities/appointment.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('services')
 export class ServiceEntity {
@@ -25,6 +31,6 @@ export class ServiceEntity {
   })
   slug: string;
 
-  @ManyToOne(() => AppointmentEntity, (appointment) => appointment.service)
+  @OneToMany(() => AppointmentEntity, (appointment) => appointment.service)
   appointment: AppointmentEntity;
 }

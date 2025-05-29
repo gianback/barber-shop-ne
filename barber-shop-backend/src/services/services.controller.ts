@@ -36,20 +36,22 @@ export class ServicesController {
     });
   }
 
-  @Patch()
+  @Patch(':id')
   @UseGuards(AuthGuard())
   async updateService(
     updateServiceDto: UpdateServiceDto,
     @GetUser('id') userId: number,
+    @Param('id') id: number,
   ) {
     return await this.servicesService.updateService({
       userId,
       updateServiceDto,
+      id,
     });
   }
 
   @Get()
-  @UseGuards(AuthGuard())
+  // @UseGuards(AuthGuard())
   getAllServices() {
     return this.servicesService.getAllServices();
   }

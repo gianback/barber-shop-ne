@@ -1,12 +1,12 @@
-import { IsString, MinLength } from 'class-validator';
+import { IsString, MaxLength, MinLength } from 'class-validator';
 export class CreateBlogDto {
   @IsString()
   @MinLength(2)
-  @MinLength(50)
+  @MaxLength(255)
   title: string;
 
   @IsString()
   @MinLength(2)
-  @MinLength(50)
+  @MaxLength(255)
   description: string;
 }

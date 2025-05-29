@@ -46,9 +46,7 @@ export class ServicesService {
     if (isMoreThan1MB)
       throw new BadRequestException('Image size must be less than 1MB');
 
-    const parsedName = this.uploadFileService.parseFileName(image);
-
-    const slug = await this.parseNameToSlug(parsedName);
+    const slug = await this.parseNameToSlug(service.name);
 
     try {
       const imageUrl = await this.uploadFileService.uploadFile(image);
@@ -56,7 +54,6 @@ export class ServicesService {
       const serviceCreated = this.servicesRepository.create({
         ...service,
         image: imageUrl,
-        name: parsedName,
         slug,
       });
 
@@ -74,9 +71,11 @@ export class ServicesService {
   async updateService({
     updateServiceDto,
     userId,
+    id,
   }: {
     updateServiceDto: UpdateServiceDto;
     userId: number;
+    id: number;
   }) {
     const user = await this.usersService.findById({ id: userId });
 
@@ -91,7 +90,7 @@ export class ServicesService {
     }
 
     const service = await this.servicesRepository.findOne({
-      where: { id: updateServiceDto.id },
+      where: { id },
     });
 
     if (!service) {
@@ -155,4 +154,6 @@ export class ServicesService {
 
     return newSlug;
   }
+
+  //TODO: UPDATE IMAGE SERVICE
 }
