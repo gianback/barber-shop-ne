@@ -7,6 +7,10 @@ export class CreateBlogDto {
 
   @IsString()
   @MinLength(2)
-  @MaxLength(255)
   description: string;
+
+  @IsString()
+  @MinLength(2)
+  @MaxLength(255)
+  description_small: string;
 }

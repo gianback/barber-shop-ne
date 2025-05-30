@@ -19,6 +19,12 @@ export class BlogEntity {
   @Column()
   description: string;
 
+  @Column({
+    nullable: false,
+    type: 'text',
+  })
+  description_small: string;
+
   @Column()
   image: string;
 

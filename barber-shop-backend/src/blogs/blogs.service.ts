@@ -60,6 +60,7 @@ export class BlogsService {
         image: urlImage,
         title: blog.title,
         slug,
+        description_small: blog.description_small,
       });
 
       const blogCreated = await this.blogRepository.save(newBlog);
