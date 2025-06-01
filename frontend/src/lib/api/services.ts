@@ -1,8 +1,8 @@
-import { env } from '$env/dynamic/private';
+import { env } from '$env/dynamic/public';
 
 export async function getServices() {
 	try {
-		const response = await fetch(`${env.API_URL}/services`);
+		const response = await fetch(`${env.PUBLIC_API_URL}/services`);
 		return await response.json();
 	} catch (error) {
 		console.log(error);
