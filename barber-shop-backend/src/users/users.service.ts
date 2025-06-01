@@ -44,7 +44,7 @@ export class UsersService {
     } catch (error: any) {
       if (error.code === '23505') {
         throw new BadRequestException(
-          `Email ${createUserDto.email} already exists`,
+          `El correo ${createUserDto.email} ya existe`,
         );
       }
 
@@ -83,7 +83,7 @@ export class UsersService {
     } catch (error: any) {
       if (error.code === '23505') {
         throw new BadRequestException(
-          `Email ${createUserDto.email} already exists`,
+          `El correo ${createUserDto.email} ya existe`,
         );
       }
 
@@ -91,6 +91,15 @@ export class UsersService {
     }
   }
 
+  async findMe(userId: number): Promise<UserEntity> {
+    const user = await this.findById({ id: userId });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
   async findById(findByIdDto: FindByIdDto): Promise<UserEntity> {
     const user = await this.userRepository.findOne({
       where: {
@@ -109,10 +118,6 @@ export class UsersService {
     const user = (await this.userRepository.findOne({
       where: { email: findByEmailDto.email },
     })) as UserEntity;
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
 
     return user;
   }

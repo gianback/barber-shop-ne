@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsNotEmpty,
@@ -17,11 +18,16 @@ export class CreateUserDto {
   @MaxLength(50)
   last_name: string;
 
+  @IsString()
+  @MaxLength(9)
+  phone: string;
+
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
   @IsString()
+  @Transform(({ value }: { value: string }) => value.trim())
   @MinLength(4)
   @MaxLength(50)
   password: string;

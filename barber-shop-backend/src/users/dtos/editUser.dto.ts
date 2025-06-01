@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, MaxLength } from 'class-validator';
 
 export class EditUserDto {
   @IsNumber()
@@ -12,6 +12,10 @@ export class EditUserDto {
 
   @IsOptional()
   email?: string;
+
+  @IsOptional()
+  @MaxLength(9)
+  phone?: string;
 
   @IsOptional()
   password?: string;

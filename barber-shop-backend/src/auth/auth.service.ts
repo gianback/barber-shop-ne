@@ -9,6 +9,7 @@ import { compareSync } from 'bcryptjs';
 import { JwtPayload } from './interfaces/jwt.interface';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -23,19 +24,16 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new BadRequestException('Invalid email or password');
+        throw new BadRequestException(`El email ${loginDto.email} no existe`);
       }
 
       const isValidPassword = compareSync(loginDto.password, user.password);
 
-      if (!isValidPassword) {
-        throw new BadRequestException('Invalid email or password');
+      if (isValidPassword === false) {
+        throw new BadRequestException('Credenciales incorrectas');
       }
 
-      const { password, role, ...restData } = user;
-
       return {
-        ...restData,
         token: this.getJwtToken({ email: user.email }),
       };
     } catch (error) {
@@ -45,9 +43,10 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.createUser(registerDto);
-    const { password, ...restData } = user;
 
-    return restData;
+    const token = this.getJwtToken({ email: user.email });
+
+    return { token };
   }
 
   private getJwtToken(payload: JwtPayload) {
@@ -56,12 +55,14 @@ export class AuthService {
     return token;
   }
 
-  private handleDbErrors(error: { code: string; detail: string }): never {
+  private handleDbErrors(error: { code: string; detail: string }) {
     if (error.code === '23505') {
       throw new BadRequestException(error.detail);
     }
 
-    console.log(error);
+    if (error instanceof BadRequestException) {
+      throw new BadRequestException(error.message);
+    }
 
     throw new InternalServerErrorException();
   }

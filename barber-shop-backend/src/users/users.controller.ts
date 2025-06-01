@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { UsersService } from './users.service';
@@ -15,6 +16,8 @@ import { GeneralResponse } from 'src/interfaces/responses.interface';
 import { EditUserDto } from './dtos/editUser.dto';
 import { FindAllUsers } from './interfaces/findAllUsers.interface';
 import { AdminCreated } from './interfaces/adminCreated.interface';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from 'src/services/decorators/getUser.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -25,6 +28,11 @@ export class UsersController {
     return await this.usersService.findAll();
   }
 
+  @Get('me')
+  @UseGuards(AuthGuard())
+  async findMe(@GetUser('id') userId: number) {
+    return await this.usersService.findMe(userId);
+  }
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<UserEntity> {
     return await this.usersService.findById({ id });
