@@ -39,7 +39,7 @@ export class ServicesController {
   @Patch(':id')
   @UseGuards(AuthGuard())
   async updateService(
-    updateServiceDto: UpdateServiceDto,
+    @Body() updateServiceDto: UpdateServiceDto,
     @GetUser('id') userId: number,
     @Param('id') id: number,
   ) {

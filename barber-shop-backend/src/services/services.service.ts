@@ -24,12 +24,14 @@ export class ServicesService {
     private readonly uploadFileService: UploadFileService,
   ) {}
 
-  async createService({
-    service,
-    userId,
-    image,
-  }: CreateServiceProps): Promise<ServiceEntity | string> {
+  async createService({ service, userId, image }: CreateServiceProps): Promise<{
+    success: boolean;
+    message: string;
+    service: ServiceEntity;
+  }> {
     const user = await this.usersService.findById({ id: userId });
+
+    console.log({ image, service });
 
     if (user === null) {
       throw new BadRequestException('User not found');
@@ -57,11 +59,15 @@ export class ServicesService {
         slug,
       });
 
-      const newService = await this.servicesRepository.save(serviceCreated);
+      await this.servicesRepository.save(serviceCreated);
 
       console.log('new services was created successfully');
 
-      return newService;
+      return {
+        success: true,
+        message: 'Servicio creado exitosamente',
+        service: serviceCreated,
+      };
     } catch (error) {
       console.log('error creando el servicio en createService', error);
       throw new InternalServerErrorException();
@@ -98,6 +104,13 @@ export class ServicesService {
     }
 
     Object.assign(service, updateServiceDto);
+
+    await this.servicesRepository.save(service);
+
+    return {
+      success: true,
+      message: 'Servicio actualizado exitosamente',
+    };
   }
 
   async deleteService({ id, userId }: { id: number; userId: number }) {
@@ -121,7 +134,13 @@ export class ServicesService {
       throw new NotFoundException('Service not found');
     }
 
+    await this.uploadFileService.deleteFile(service.name);
     await this.servicesRepository.delete({ id });
+
+    return {
+      success: true,
+      message: 'Servicio eliminado exitosamente',
+    };
   }
 
   async getServiceById(id: number) {

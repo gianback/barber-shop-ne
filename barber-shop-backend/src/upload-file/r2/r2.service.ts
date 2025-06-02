@@ -6,7 +6,7 @@ import {
 import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { S3Client } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
-
+import * as path from 'path';
 @Injectable()
 export class R2StorageService {
   constructor(
@@ -23,11 +23,15 @@ export class R2StorageService {
       'CLOUDFLARE_IMAGE_BASE_URL',
     );
 
-    const name = this.parseFileName(body.originalname);
+    const [fileName] = body.originalname.split('.');
+
+    const extension = path.extname(body.originalname);
+
+    const name = this.parseFileName(fileName);
 
     const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
-      Key: name,
+      Key: `${name}.${extension}`,
       Body: body.buffer,
     });
 
@@ -38,7 +42,7 @@ export class R2StorageService {
         throw new InternalServerErrorException('Error al subir el archivo');
       }
 
-      return `${BASE_URL_IMAGE}/${name}`;
+      return `${BASE_URL_IMAGE}/${name}.${extension}`;
     } catch (error) {
       console.log(`Error upload  r2stroageService`, error);
       throw new InternalServerErrorException(error);
@@ -57,6 +61,8 @@ export class R2StorageService {
 
     try {
       const response = await this.client.send(command);
+
+      console.log({ response, name });
 
       if (response.$metadata.httpStatusCode !== 200) {
         throw new InternalServerErrorException('Error al subir el archivo');

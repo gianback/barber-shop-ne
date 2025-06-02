@@ -1,7 +1,15 @@
+import { IsOptional, IsString } from 'class-validator';
+
 export class UpdateServiceDto {
-  id?: number;
-  name?: string;
-  description?: string;
-  price?: number;
-  image?: string;
+  @IsString()
+  @IsOptional()
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  description: string;
+
+  @IsString()
+  @IsOptional()
+  price: number;
 }

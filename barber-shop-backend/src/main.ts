@@ -11,6 +11,9 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // print an error when unknown properties are found
     }),
   );
+  app.enableCors({
+    origin: process.env.FRONTEND_URL,
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }

@@ -4,11 +4,11 @@ import { R2StorageService } from './r2/r2.service';
 export class UploadFileService {
   constructor(private r2StorageService: R2StorageService) {}
 
-  async uploadFile(file: Express.Multer.File) {
-    return this.r2StorageService.upload(file);
+  async uploadFile(image: Express.Multer.File) {
+    return this.r2StorageService.upload(image);
   }
 
-  async deleteFile(name: string) {
-    return await this.r2StorageService.delete(name);
+  async deleteFile(key: string) {
+    return await this.r2StorageService.delete(key);
   }
 }
