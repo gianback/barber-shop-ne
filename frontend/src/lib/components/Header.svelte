@@ -13,12 +13,14 @@
 
 <header class="bg-primary py-4">
 	<div class="container flex items-center justify-between">
-		<img src="/images/logo.png" alt="Logo barberia" />
+		<a href="/">
+			<img src="/images/logo.png" alt="Logo barberia" />
+		</a>
 
 		{#if admin}
 			<ul class="flex items-center gap-8 text-xl text-white">
 				<li>
-					<a href="/admin/servicios">Servicios</a>
+					<a href="/admin/services">Servicios</a>
 				</li>
 				<li>
 					<a href="/admin/blogs">Blogs</a>
@@ -53,7 +55,7 @@
 					</div>
 				</div>
 			{:else}
-				<Button>Iniciar sesión</Button>
+				<Button url="/auth/login">Iniciar sesión</Button>
 			{/if}
 
 			<Button>Agendar cita</Button>
