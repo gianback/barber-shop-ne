@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { createService, deleteService, updateService } from '$lib/api/services';
+	import {
+		createService,
+		deleteService,
+		updateService,
+		updateServiceImage
+	} from '$lib/api/services';
 	import { formatPrice } from '$lib/client/price';
 	import Header from '$lib/components/Header.svelte';
 	import Modal from '$lib/components/Modal.svelte';
@@ -21,11 +26,13 @@
 
 	let serviceList = $state<Service[]>(services);
 
-	let activeModal = $state(false);
+	let activeUpdateModal = $state(false);
 
 	let activeDeleteModal = $state(false);
 
 	let activeCreateModal = $state(false);
+
+	let activeUpdateImageModal = $state(false);
 
 	let serviceSelected = $state<Service>({
 		id: 0,
@@ -35,38 +42,43 @@
 		image: ''
 	});
 
-	const openUpdateModal = () => {
-		activeModal = true;
+	const MODAL_TYPES = {
+		CREATE: 'create',
+		UPDATE: 'update',
+		DELETE: 'delete',
+		UPDATE_IMAGE: 'updateImage'
 	};
 
-	const closeUpdateModal = () => {
-		activeModal = false;
+	type ModalType = (typeof MODAL_TYPES)[keyof typeof MODAL_TYPES];
+
+	const closeModal = (type: ModalType) => {
+		if (type === MODAL_TYPES.CREATE) {
+			activeCreateModal = false;
+		} else if (type === MODAL_TYPES.UPDATE) {
+			activeUpdateModal = false;
+		} else if (type === MODAL_TYPES.DELETE) {
+			activeDeleteModal = false;
+		} else if (type === MODAL_TYPES.UPDATE_IMAGE) {
+			activeUpdateImageModal = false;
+		}
 	};
 
-	const openDeleteModal = () => {
-		activeDeleteModal = true;
+	const openModal = (type: ModalType) => {
+		if (type === MODAL_TYPES.CREATE) {
+			activeCreateModal = true;
+		} else if (type === MODAL_TYPES.UPDATE) {
+			activeUpdateModal = true;
+		} else if (type === MODAL_TYPES.DELETE) {
+			activeDeleteModal = true;
+		} else if (type === MODAL_TYPES.UPDATE_IMAGE) {
+			activeUpdateImageModal = true;
+		}
 	};
 
-	const closeDeleteModal = () => {
-		activeDeleteModal = false;
-	};
-
-	const openCreateModal = () => {
-		activeCreateModal = true;
-	};
-
-	const closeCreateModal = () => {
-		activeCreateModal = false;
-	};
-
-	const handleServiceSelected = (service: Service, type: 'update' | 'delete') => {
+	const handleServiceSelected = (service: Service, type: ModalType) => {
 		serviceSelected = service;
 
-		if (type === 'update') {
-			openUpdateModal();
-		} else {
-			openDeleteModal();
-		}
+		openModal(type);
 	};
 
 	const handleCreateService = async (event: SubmitEvent) => {
@@ -83,7 +95,7 @@
 		const { success, service } = await createService({ service: formData, token });
 
 		if (success) {
-			closeCreateModal();
+			closeModal(MODAL_TYPES.CREATE);
 			toast.success('Servicio creado');
 			serviceList.push(service);
 		}
@@ -117,7 +129,7 @@
 		});
 
 		if (success) {
-			closeUpdateModal();
+			closeModal(MODAL_TYPES.UPDATE);
 
 			const servicesUpdated = services.map((service: Service) => {
 				return {
@@ -139,13 +151,44 @@
 		});
 
 		if (success) {
-			closeDeleteModal();
+			closeModal(MODAL_TYPES.DELETE);
 
 			const servicesUpdated = services.filter(
 				(service: Service) => service.id !== serviceSelected.id
 			);
 			serviceList = servicesUpdated;
 			toast.success('Servicio eliminado');
+		}
+	};
+
+	const handleUpdateImageService = async (event: SubmitEvent) => {
+		const formData = new FormData(event.target as HTMLFormElement);
+
+		const file = document.getElementById('imageUpdate') as HTMLInputElement;
+
+		const files = file.files as FileList;
+
+		formData.append('image', files[0]);
+
+		const { success, service: serviceUpdated } = await updateServiceImage({
+			token,
+			image: formData,
+			serviceId: serviceSelected.id
+		});
+
+		if (success) {
+			closeModal(MODAL_TYPES.UPDATE_IMAGE);
+			toast.success('Imagen actualizada');
+			serviceList = serviceList.map((item: Service) => {
+				if (item.id === serviceSelected.id) {
+					return {
+						...item,
+						image: serviceUpdated.image
+					};
+				} else {
+					return item;
+				}
+			});
 		}
 	};
 </script>
@@ -157,7 +200,10 @@
 			<div class="mb-8">
 				<h1 class="mb-12 text-center text-4xl text-white">Mis Servicios</h1>
 
-				<Button onClick={openCreateModal} className="flex items-center justify-center gap-4">
+				<Button
+					onClick={() => openModal(MODAL_TYPES.CREATE)}
+					className="flex items-center justify-center gap-4"
+				>
 					Agregar nuevo servicio
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -200,7 +246,22 @@
 									<td class="px-6 py-4"> {service.description} </td>
 									<td class="px-6 py-4"> {formatPrice(service.price)} </td>
 									<td class="px-6 py-4">
-										<img src={service.image} class="size-20 object-cover" alt={service.name} />
+										<div class="group relative">
+											<img
+												src={service.image}
+												width={200}
+												height={130}
+												class="max-h-[130px] max-w-[200px] object-cover"
+												alt={service.name}
+											/>
+
+											<Button
+												onClick={() => handleServiceSelected(service, 'updateImage')}
+												className="absolute transition-opacity duration-300 ease-out opacity-0 group-hover:opacity-100 bg-secondary left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-primary hover:bg-secondary"
+											>
+												Editar
+											</Button>
+										</div>
 									</td>
 									<td class="px-6 py-4">
 										<div class="flex items-center gap-4">
@@ -226,8 +287,8 @@
 	</main>
 </Layout>
 
-{#if activeModal}
-	<Modal onClose={closeUpdateModal}>
+{#if activeUpdateModal}
+	<Modal onClose={() => closeModal(MODAL_TYPES.UPDATE)}>
 		<form class="flex flex-col gap-4" onsubmit={handleUpdateService}>
 			<div>
 				<label for="name" class="mb-2 block text-sm font-medium text-gray-700"> Nombre </label>
@@ -271,17 +332,17 @@
 {/if}
 
 {#if activeDeleteModal}
-	<Modal onClose={closeDeleteModal}>
+	<Modal onClose={() => closeModal(MODAL_TYPES.DELETE)}>
 		<p>¿Estás seguro de que deseas eliminar este servicio? Esta acción no se puede deshacer.</p>
 		<div class="flex items-center justify-center gap-4 lg:flex-row">
 			<Button onClick={handleDeleteService}>Si, eliminar</Button>
-			<Button onClick={closeDeleteModal}>Cancelar</Button>
+			<Button onClick={() => closeModal(MODAL_TYPES.DELETE)}>Cancelar</Button>
 		</div>
 	</Modal>
 {/if}
 
 {#if activeCreateModal}
-	<Modal onClose={closeCreateModal}>
+	<Modal onClose={() => closeModal(MODAL_TYPES.CREATE)}>
 		<form class="flex flex-col gap-4" onsubmit={handleCreateService}>
 			<div>
 				<label for="name" class="mb-2 block text-sm font-medium text-gray-700"> Nombre </label>
@@ -337,6 +398,25 @@
 	</Modal>
 {/if}
 
+{#if activeUpdateImageModal}
+	<Modal onClose={() => closeModal(MODAL_TYPES.UPDATE_IMAGE)}>
+		<form class="flex flex-col gap-4" onsubmit={handleUpdateImageService}>
+			<div>
+				<label for="imageUpdate" class="mb-2 block text-sm font-medium text-gray-700">
+					Imagen
+				</label>
+				<input
+					class="block w-full border border-gray-300 bg-gray-50 text-sm text-gray-900 outline-none focus:outline-none"
+					id="imageUpdate"
+					type="file"
+					accept="image/jpeg, image/png, image/jpg, image/webp"
+				/>
+			</div>
+
+			<Button type="submit">Actualizar</Button>
+		</form></Modal
+	>
+{/if}
 <Toaster richColors={true} position="bottom-right" />
 
 <style>

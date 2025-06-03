@@ -68,6 +68,32 @@ export async function updateService({
 	}
 }
 
+export async function updateServiceImage({
+	image,
+	serviceId,
+	token
+}: {
+	serviceId: number;
+	token: string;
+	image: FormData;
+}) {
+	try {
+		const response = await fetch(`${env.PUBLIC_API_URL}/services/image/${serviceId}`, {
+			method: 'PATCH',
+			headers: {
+				Authorization: `Bearer ${token}`
+			},
+			body: image
+		});
+
+		const data = await response.json();
+
+		return data;
+	} catch (error) {
+		console.log(error);
+	}
+}
+
 export function deleteService({ id, token }: { id: number; token: string }) {
 	return fetch(`${env.PUBLIC_API_URL}/services/${id}`, {
 		method: 'DELETE',
