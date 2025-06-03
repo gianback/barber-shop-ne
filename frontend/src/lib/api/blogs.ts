@@ -11,6 +11,17 @@ export async function getBlogs() {
 	}
 }
 
+export async function getBlog(id: number) {
+	try {
+		const response = await fetch(`${env.PUBLIC_API_URL}/blogs/${id}`);
+		const blog = await response.json();
+
+		return blog;
+	} catch (error) {
+		console.log(error);
+	}
+}
+
 export async function createBlog({ blog, token }: { blog: FormData; token: string }) {
 	try {
 		const response = await fetch(`${env.PUBLIC_API_URL}/blogs`, {
@@ -23,7 +34,7 @@ export async function createBlog({ blog, token }: { blog: FormData; token: strin
 
 		if (response.status === 401) {
 			toast.error('Sesión caducada');
-			return false;
+			return { success: false };
 		}
 
 		const data = await response.json();

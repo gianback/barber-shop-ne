@@ -13,7 +13,10 @@
 
 		<div class="mx-auto mt-20 grid max-w-[80%] grid-cols-3 gap-16">
 			{#each blogs as service (service.id)}
-				<article class="group overflow-hidden rounded-md shadow-[0_5px_15px_5px_rgba(0,0,0,0.2)]">
+				<a
+					href="/blog/{service.id}-{service.slug}"
+					class="group overflow-hidden rounded-md shadow-[0_5px_15px_5px_rgba(0,0,0,0.2)]"
+				>
 					<picture class="flex items-center justify-center overflow-hidden">
 						<img
 							class="w-full object-cover transition-transform duration-300 ease-out group-hover:scale-110"
@@ -29,7 +32,7 @@
 						</div>
 						<p class="mb-6 font-light">{service.description_small}</p>
 					</div>
-				</article>
+				</a>
 			{/each}
 		</div>
 	</div>
