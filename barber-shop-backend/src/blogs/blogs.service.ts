@@ -7,6 +7,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { GeneralResponse } from 'src/interfaces/responses.interface';
@@ -33,7 +34,7 @@ export class BlogsService {
     blog: CreateBlogDto;
     image: Express.Multer.File;
     userId: number;
-  }): Promise<BlogEntity> {
+  }): Promise<{ success: boolean; blog: BlogEntity }> {
     const user = await this.usersService.findById({ id: userId });
 
     if (user === null) {
@@ -65,7 +66,10 @@ export class BlogsService {
 
       const blogCreated = await this.blogRepository.save(newBlog);
 
-      return blogCreated;
+      return {
+        success: true,
+        blog: blogCreated,
+      };
     } catch (error: any) {
       console.log('error creando el blog en createBlog', error);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -78,6 +82,47 @@ export class BlogsService {
   }
 
   //TODO: UPDATE IMAGE BLOG
+  async updateImageBlog({
+    userId,
+    id,
+    file,
+  }: {
+    userId: number;
+    id: number;
+    file: Express.Multer.File;
+  }) {
+    const user = await this.usersService.findById({ id: userId });
+
+    if (user === null) {
+      throw new BadRequestException('User not found');
+    }
+
+    const isAdmin = user.role === UserRole.admin;
+
+    if (!isAdmin) {
+      throw new UnauthorizedException('User not authorized');
+    }
+
+    const blog = await this.blogRepository.findOne({
+      where: { id },
+    });
+
+    if (!blog) {
+      throw new NotFoundException('Blog not found');
+    }
+
+    const imageUrl = await this.uploadFileService.uploadFile(file);
+
+    blog.image = imageUrl;
+
+    await this.blogRepository.save(blog);
+
+    return {
+      success: true,
+      message: 'Imagen del servicio actualizada exitosamente',
+      blog,
+    };
+  }
 
   async deletePost({
     id,
@@ -135,7 +180,7 @@ export class BlogsService {
     id: number;
     blog: PatchBlog;
     userId: number;
-  }): Promise<GeneralResponse> {
+  }): Promise<{ success: boolean; blog: BlogEntity }> {
     const user = await this.usersService.findById({ id: userId });
 
     const isAdmin = user.role === UserRole.admin;
@@ -156,7 +201,7 @@ export class BlogsService {
 
     await this.blogRepository.save(post);
 
-    return { message: 'Post updated', status: 200 };
+    return { success: true, blog: post };
   }
 
   parseNameToSlug(name: string): string {

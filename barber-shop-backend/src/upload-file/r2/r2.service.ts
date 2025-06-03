@@ -31,7 +31,7 @@ export class R2StorageService {
 
     const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
-      Key: `${name}.${extension}`,
+      Key: `${name}${extension}`,
       Body: body.buffer,
     });
 
@@ -42,7 +42,7 @@ export class R2StorageService {
         throw new InternalServerErrorException('Error al subir el archivo');
       }
 
-      return `${BASE_URL_IMAGE}/${name}.${extension}`;
+      return `${BASE_URL_IMAGE}/${name}${extension}`;
     } catch (error) {
       console.log(`Error upload  r2stroageService`, error);
       throw new InternalServerErrorException(error);

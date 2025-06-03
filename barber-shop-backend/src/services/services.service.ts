@@ -31,8 +31,6 @@ export class ServicesService {
   }> {
     const user = await this.usersService.findById({ id: userId });
 
-    console.log({ image, service });
-
     if (user === null) {
       throw new BadRequestException('User not found');
     }
@@ -110,6 +108,48 @@ export class ServicesService {
     return {
       success: true,
       message: 'Servicio actualizado exitosamente',
+    };
+  }
+
+  async updateServiceImage({
+    userId,
+    id,
+    file,
+  }: {
+    userId: number;
+    id: number;
+    file: Express.Multer.File;
+  }) {
+    const user = await this.usersService.findById({ id: userId });
+
+    if (user === null) {
+      throw new BadRequestException('User not found');
+    }
+
+    const isAdmin = user.role === UserRole.admin;
+
+    if (!isAdmin) {
+      throw new UnauthorizedException('User not authorized');
+    }
+
+    const service = await this.servicesRepository.findOne({
+      where: { id },
+    });
+
+    if (!service) {
+      throw new NotFoundException('Service not found');
+    }
+
+    const imageUrl = await this.uploadFileService.uploadFile(file);
+
+    service.image = imageUrl;
+
+    await this.servicesRepository.save(service);
+
+    return {
+      success: true,
+      message: 'Imagen del servicio actualizada exitosamente',
+      service,
     };
   }
 

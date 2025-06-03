@@ -50,6 +50,21 @@ export class ServicesController {
     });
   }
 
+  @Patch('/image/:id')
+  @UseGuards(AuthGuard())
+  @UseInterceptors(FileInterceptor('image'))
+  async updateServiceImage(
+    @GetUser('id') userId: number,
+    @Param('id') id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return await this.servicesService.updateServiceImage({
+      userId,
+      id,
+      file,
+    });
+  }
+
   @Get()
   // @UseGuards(AuthGuard())
   getAllServices() {

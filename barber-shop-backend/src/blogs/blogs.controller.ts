@@ -34,7 +34,7 @@ export class BlogsController {
     @GetUser('id') userId: number,
     @Body() blog: CreateBlogDto,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<BlogEntity> {
+  ): Promise<{ success: boolean; blog: BlogEntity }> {
     return await this.blogsServices.createPost({
       blog,
       image: file,
@@ -53,12 +53,23 @@ export class BlogsController {
     @Param('id') id: number,
     @Body() blog: Partial<BlogEntity>,
     @GetUser('id') userId: number,
-  ): Promise<GeneralResponse> {
+  ): Promise<{ success: boolean; blog: BlogEntity }> {
     return await this.blogsServices.updatePost({
       id,
       blog,
       userId,
     });
+  }
+
+  @Patch('/image/:id')
+  @UseGuards(AuthGuard())
+  @UseInterceptors(FileInterceptor('image'))
+  async updateImagePost(
+    @GetUser('id') userId: number,
+    @Param('id') id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return await this.blogsServices.updateImageBlog({ id, file, userId });
   }
 
   @Delete(':id')
