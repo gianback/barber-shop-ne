@@ -33,6 +33,8 @@ export class R2StorageService {
       Bucket: BUCKET_NAME,
       Key: `${name}${extension}`,
       Body: body.buffer,
+      ContentType: `image/${extension.split('.')[1]}`,
+      ContentDisposition: 'inline',
     });
 
     try {

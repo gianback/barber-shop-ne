@@ -11,6 +11,8 @@ import { ServicesController } from './services/services.controller';
 import { AuthModule } from './auth/auth.module';
 import { AppointmentsController } from './appointments/appointments.controller';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { PaymentsModule } from './payments/payments.module';
+import { PaymentsController } from './payments/payments.controller';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
     BlogsModule,
     ServicesModule,
     AppointmentsModule,
+    PaymentsModule,
     AuthModule,
   ],
   controllers: [
@@ -27,6 +30,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
     BlogsController,
     ServicesController,
     AppointmentsController,
+    PaymentsController,
   ],
 })
 export class AppModule {

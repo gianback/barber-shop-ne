@@ -30,12 +30,12 @@ export class AppointmentsController {
     });
   }
 
-  @Get('/date/:date')
+  @Get('date/:date')
   getHoursAppointmentsAvailableByDate(@Param('date') date: Date) {
     return this.appointmentsService.getHoursAppointmentsAvailableByDate(date);
   }
 
-  @Get('/user/:userId')
+  @Get('user/:userId')
   @UseGuards(AuthGuard())
   getAppointmentsByUserId(@Param('userId') userId: number) {
     return this.appointmentsService.getAppointmentsByUserId(userId);
