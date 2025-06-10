@@ -11,7 +11,7 @@ export async function getBlogs() {
 	}
 }
 
-export async function getBlog(id: number) {
+export async function getBlog(id: string) {
 	try {
 		const response = await fetch(`${env.PUBLIC_API_URL}/blogs/${id}`);
 		const blog = await response.json();

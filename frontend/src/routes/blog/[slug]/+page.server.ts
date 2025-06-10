@@ -1,5 +1,6 @@
 import { getBlog } from '$lib/api/blogs';
-export const load = async ({ params }) => {
+import type { PageServerLoad } from './$types';
+export const load: PageServerLoad = async ({ params }) => {
 	const { slug } = params;
 
 	const id = slug.split('-')[0];

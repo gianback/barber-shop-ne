@@ -4,6 +4,6 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [sveltekit()],
 	ssr: {
-		noExternal: ['svelte-sonner']
+		noExternal: ['svelte-sonner', '@svelte-plugins/datepicker']
 	}
 });

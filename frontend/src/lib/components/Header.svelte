@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { redirect } from '@sveltejs/kit';
 	import Button from './Button.svelte';
+	import { goto } from '$app/navigation';
 
 	const { user } = $derived(page.data);
 
@@ -9,6 +11,15 @@
 	if (user?.role === 'admin') {
 		admin = true;
 	}
+
+	const handleSaveAppointment = (e: Event) => {
+		e.stopPropagation();
+		if (!user) {
+			goto('/auth/login');
+		}
+
+		goto('/appointment/create');
+	};
 </script>
 
 <header class="bg-primary py-4">
@@ -25,6 +36,13 @@
 				<li>
 					<a href="/admin/blogs">Blogs</a>
 				</li>
+				{#if user}
+					<ul class="flex items-center gap-8 text-xl text-white">
+						<li>
+							<a href="/appointment/list">Mis citas</a>
+						</li>
+					</ul>
+				{/if}
 			</ul>
 		{/if}
 
@@ -58,7 +76,7 @@
 				<Button url="/auth/login">Iniciar sesión</Button>
 			{/if}
 
-			<Button>Agendar cita</Button>
+			<Button onClick={handleSaveAppointment}>Agendar cita</Button>
 		</div>
 	</div>
 </header>

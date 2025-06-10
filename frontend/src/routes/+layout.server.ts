@@ -1,8 +1,8 @@
 import { getBlogs } from '$lib/api/blogs';
 import { getServices } from '$lib/api/services';
-import type { PageServerLoad } from './$types';
+import type { LayoutServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: LayoutServerLoad = async ({ locals }) => {
 	const user = locals.user;
 	const [services, blogs] = await Promise.all([getServices(), getBlogs()]);
 
