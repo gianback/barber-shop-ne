@@ -64,8 +64,6 @@ export class R2StorageService {
     try {
       const response = await this.client.send(command);
 
-      console.log({ response, name });
-
       if (response.$metadata.httpStatusCode !== 200) {
         throw new InternalServerErrorException('Error al subir el archivo');
       }

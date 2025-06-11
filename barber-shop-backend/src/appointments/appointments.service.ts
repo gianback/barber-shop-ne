@@ -265,6 +265,23 @@ export class AppointmentsService {
     };
   }
 
+  async updateStatusAppointment(appointmentId: number, status: boolean) {
+    const appointment = await this.appointmentRepository.findOneBy({
+      id: appointmentId,
+    });
+
+    if (!appointment) {
+      throw new BadRequestException('Appointment not found');
+    }
+
+    appointment.paid = status;
+
+    const appointmentUpdated =
+      await this.appointmentRepository.save(appointment);
+
+    return appointmentUpdated;
+  }
+
   validateValidDate(date: Date) {
     const isAfterToday = isAfter(date, new Date().toISOString());
 

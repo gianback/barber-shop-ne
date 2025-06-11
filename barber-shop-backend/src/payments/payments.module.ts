@@ -10,9 +10,17 @@ import { UsersService } from 'src/users/users.service';
 import { UploadFileService } from 'src/upload-file/upload-file.service';
 import { R2StorageService } from 'src/upload-file/r2/r2.service';
 import { r2Provider } from 'src/upload-file/r2/r2.provider';
+import { AppointmentsService } from 'src/appointments/appointments.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppointmentEntity } from 'src/appointments/entities/appointment.entity';
 
 @Module({
-  imports: [AuthModule, ServicesModule, StripeModule],
+  imports: [
+    TypeOrmModule.forFeature([AppointmentEntity]),
+    AuthModule,
+    ServicesModule,
+    StripeModule,
+  ],
   providers: [
     PaymentsService,
     StripeService,
@@ -22,6 +30,7 @@ import { r2Provider } from 'src/upload-file/r2/r2.provider';
     UploadFileService,
     R2StorageService,
     r2Provider,
+    AppointmentsService,
   ],
   exports: [PaymentsService],
 })

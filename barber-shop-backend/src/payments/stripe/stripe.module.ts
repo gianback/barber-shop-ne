@@ -11,10 +11,12 @@ import { UploadFileService } from 'src/upload-file/upload-file.service';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { R2StorageService } from 'src/upload-file/r2/r2.service';
 import { r2Provider } from 'src/upload-file/r2/r2.provider';
+import { AppointmentsService } from 'src/appointments/appointments.service';
+import { AppointmentEntity } from 'src/appointments/entities/appointment.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ServiceEntity, UserEntity]),
+    TypeOrmModule.forFeature([ServiceEntity, UserEntity, AppointmentEntity]),
     ConfigModule,
   ],
   providers: [
@@ -25,6 +27,7 @@ import { r2Provider } from 'src/upload-file/r2/r2.provider';
     UploadFileService,
     R2StorageService,
     r2Provider,
+    AppointmentsService,
   ],
   exports: [StripeService, StripeProvider],
 })

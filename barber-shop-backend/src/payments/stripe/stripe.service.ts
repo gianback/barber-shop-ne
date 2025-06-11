@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { CreateCheckoutSessionDto } from '../dtos/create-checkout-session.dto';
 import { ServicesService } from 'src/services/services.service';
+import { AppointmentsService } from 'src/appointments/appointments.service';
 
 @Injectable()
 export class StripeService {
@@ -10,6 +11,7 @@ export class StripeService {
     @Inject('STRIPE') private readonly stripe: Stripe,
     private readonly configService: ConfigService,
     private readonly servicesService: ServicesService,
+    private readonly appointmentsService: AppointmentsService,
   ) {}
 
   async createCheckoutSession(
@@ -18,8 +20,6 @@ export class StripeService {
     const service = await this.servicesService.getServiceById(
       createCheckoutSessionDto.serviceId,
     );
-
-    console.log(service);
 
     const session = await this.stripe.checkout.sessions.create({
       line_items: [
@@ -31,7 +31,7 @@ export class StripeService {
               images: [service.image],
               description: service.description,
               metadata: {
-                appointmentId: createCheckoutSessionDto.appointmentId,
+                slug: service.slug,
               },
             },
             unit_amount: service.price * 100,
@@ -42,6 +42,12 @@ export class StripeService {
       mode: 'payment',
       success_url: `${this.configService.get<string>('FRONTEND_URL')}/payment-success`,
       cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/payment-cancel`,
+
+      payment_intent_data: {
+        metadata: {
+          appointmentId: createCheckoutSessionDto.appointmentId,
+        },
+      },
     });
 
     return {
@@ -49,13 +55,16 @@ export class StripeService {
     };
   }
 
-  handleWebhook(signature: string, body: Buffer<ArrayBufferLike>) {
+  async handleWebhook(signature: string, body: Buffer<ArrayBufferLike>) {
     const webhookSecret =
-      this.configService.get<string>('STRIPE_WEBHOOK_SECRET') || '';
+      this.configService.get<string>('STRIPE_WEBHOOK_SECRET_KEY') || '';
+
     if (!signature || !body) {
       throw new Error('Invalid request');
     }
+
     let event: Stripe.Event;
+
     try {
       event = this.stripe.webhooks.constructEvent(
         body,
@@ -63,22 +72,22 @@ export class StripeService {
         webhookSecret,
       );
 
-      switch (event.type) {
-        case 'payment_intent.succeeded':
-          // let paymentIntent = event.data.object;
+      if (event.type === 'payment_intent.succeeded') {
+        const session = event.data.object;
 
-          //todo editar el appointment y actualizar el status
-          console.log(event.data.object);
+        const appointmentId = Number(session.metadata?.appointmentId);
 
-          break;
-        default:
-          console.log('Unhandled event type: ', event.type);
+        await this.appointmentsService.updateStatusAppointment(
+          appointmentId,
+          true,
+        );
+
+        return {
+          success: true,
+        };
       }
-      return {
-        success: true,
-      };
     } catch (err) {
-      console.log('Invalid request webhook');
+      console.log('Invalid request webhook', err);
 
       return {
         success: false,
