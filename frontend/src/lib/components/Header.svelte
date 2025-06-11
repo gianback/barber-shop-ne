@@ -28,20 +28,18 @@
 			<img src="/images/logo.png" alt="Logo barberia" />
 		</a>
 
-		{#if admin}
+		{#if user}
 			<ul class="flex items-center gap-8 text-xl text-white">
 				<li>
-					<a href="/admin/services">Servicios</a>
+					<a href="/appointment/list">Mis citas</a>
 				</li>
-				<li>
-					<a href="/admin/blogs">Blogs</a>
-				</li>
-				{#if user}
-					<ul class="flex items-center gap-8 text-xl text-white">
-						<li>
-							<a href="/appointment/list">Mis citas</a>
-						</li>
-					</ul>
+				{#if admin}
+					<li>
+						<a href="/admin/services">Servicios</a>
+					</li>
+					<li>
+						<a href="/admin/blogs">Blogs</a>
+					</li>
 				{/if}
 			</ul>
 		{/if}
